@@ -1,0 +1,17 @@
+<GUILayout>
+    <Window Name="Root" Type="DefaultWindow">
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Name="Root/Chatbox" Type="Vanilla/Listbox">
+            <Property Name="UnifiedAreaRect" Value="{{0.0009375,0},{0.703659,0},{0.358438,50},{0.843659,50}}" />
+            <Property Name="Text">
+</Property>
+        </Window>
+        <Window Name="Root/Message" Type="Vanilla/Editbox">
+            <Property Name="UnifiedAreaRect" Value="{{-0.000312495,0},{0.906198,0},{0.29,50},{0.883893,50}}" />
+        </Window>
+        <Window Name="Root/Send" Type="Vanilla/Button">
+            <Property Name="UnifiedAreaRect" Value="{{0.331562,0},{0.906198,0},{0.359531,50},{0.883203,50}}" />
+            <Property Name="Text" Value="Send" />
+        </Window>
+    </Window>
+</GUILayout>
