@@ -61,6 +61,21 @@ def movement():
     prot.sendString(str(loc[2]))
     loc=[]
     
+def messageSender():
+    global msg
+    print "sending"
+    prot.sendString("chat")
+    prot.sendString(str(msg))
+    
+def messageReceived(msg):
+    global boxItems
+    global user
+    listboxitem = PyCEGUI.ListboxTextItem(msg)
+    listboxitem.AutoDeleted = False
+    chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
+    chatbox.addItem(listboxitem)
+    boxItems.append(listboxitem)
+    
 def inv():
     global queue
     queue.put(lambda: PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Incorrect").setProperty("Visible", "True"))
@@ -421,6 +436,10 @@ class PandaCEGUI(object, DirectObject):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
         layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
         PyCEGUI.System.getSingleton().setGUISheet(layout)
+        self.send=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
+        self.send.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
+        self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
+        self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
         global started
         started=True
         self.camGroundRay = CollisionRay()
@@ -436,6 +455,13 @@ class PandaCEGUI(object, DirectObject):
         self.floater = NodePath(PandaNode("floater"))
         self.floater.reparentTo(render)
         taskMgr.add(self.move,"moveTask")
+        
+    def sendMessage(self, args):
+        global msg
+        global username
+        msg=self.message.getText()
+        self.message.setProperty("Text", "")
+        reactor.callInThread(messageSender)
         
     def move(self, task):
     
@@ -557,9 +583,20 @@ class MyApp(ShowBase):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
         layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
         PyCEGUI.System.getSingleton().setGUISheet(layout)
+        self.send=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
+        self.send.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
+        self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
+        self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
         reactor.callFromThread(start)
         global started
         started=True
+        
+    def sendMessage(self, args):
+        global msg
+        global username
+        msg=self.message.getText()
+        self.message.setProperty("Text", "")
+        reactor.callInThread(messageSender)
                 
 class EchoClient(StatefulStringProtocol,Int32StringReceiver):
     def connectionMade(self):
@@ -577,6 +614,9 @@ class EchoClient(StatefulStringProtocol,Int32StringReceiver):
             
         elif data=="Position":
             return 'position'
+            
+        elif data =="chat":
+            return 'chat'
             
         else:
             print data
@@ -613,6 +653,10 @@ class EchoClient(StatefulStringProtocol,Int32StringReceiver):
     def proto_positionz(self, data):
         global newloc
         newloc.append(float(data))
+        return 'init'
+        
+    def proto_chat(self, data):
+        messageReceived(data)
         return 'init'
 
     def connectionLost(self, reason):

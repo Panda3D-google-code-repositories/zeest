@@ -14,6 +14,7 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
     def connectionMade(self):
         print str(self.transport.getPeer()) + "connected"
         self.sendString("connected")
+        self.factory.clientConnectionMade(self)
 
     def proto_init(self, data):
         print data
@@ -74,8 +75,8 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
             else:
                 self.sendString("inv")
             	return 'init'
+                
         except IndexError:
-            print "invalid username/password"
             self.sendString("inv")
             return 'init'
         
@@ -85,10 +86,14 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
         if data == "moved":
             return 'moved';
         else:
+            print data
             return 'loggedin'
 
-    def prot_chat(self, data):
-        print "data"
+    def proto_chat(self, data):
+        global clients
+        for client in clients:
+            client.sendString("chat")
+            client.sendString(user.strip("'") + ": " + data)
         return 'loggedin'
         
     def proto_moved(self,data):
@@ -114,6 +119,13 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
 
 class redir(protocol.ServerFactory):
     protocol=listen
+    def clientConnectionMade(self, client):
+        global clients
+        clients.append(client)
+        
+    def clientConnectionLost(self, client):
+        global clients
+        clients.remove(client)
   
 
 def main():
