@@ -11,7 +11,6 @@ import PyCEGUIOpenGLRenderer
 
 from twisted.internet import reactor,protocol
 from twisted.protocols.basic import Int32StringReceiver, StatefulStringProtocol
-#from twisted.words.protocols import irc
 
 import threading
 import Queue
@@ -20,7 +19,6 @@ import Queue
 
 queue=Queue.Queue(-1)
 prot = None
-#chatProtocol=None
 user=None
 started=False
 msg=None
@@ -36,6 +34,8 @@ enemyLoc1=[]
 enemyLoc2=[]
 enemyLoc3=[]
 loc=[]
+newloc=[]
+movecount=0
 
 def loginClicked(user, password):
     global prot
@@ -46,10 +46,6 @@ def loginClicked(user, password):
 def gotProtocol(proto):
     global prot
     prot = proto
-    
-# def chatProtocol(proto):
-    # global chatProtocol
-    # chatProtocol=proto
     
 def loggedin():
     global queue
@@ -64,50 +60,6 @@ def movement():
     prot.sendString(str(loc[1]))
     prot.sendString(str(loc[2]))
     loc=[]
-    
-    
-# def start():
-    # global chatProtocol
-    # global username
-    # user=str(username)
-    # global password
-    # irc.IRCClient.setNick(chatProtocol, user)
-    # chatProtocol.join("#spiritsword")
-    # print "joined"
-
-# def messageSender():
-    # global msg
-    # global chatProtocol
-    # msg=str(msg)
-    # chatProtocol.msg("#spiritsword", msg)
-    
-# def messageReceived():
-    # global msg
-    # global user
-    # global queue
-    # queue.put(lambda: addMessage())
-    
-# def addMessage():
-    # global msg
-    # global boxItems
-    # global user
-    # msg=str(user) + ": "+str(msg)
-    # listboxitem = PyCEGUI.ListboxTextItem(msg)
-    # listboxitem.AutoDeleted = False
-    # chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
-    # chatbox.addItem(listboxitem)
-    # boxItems.append(listboxitem)
-    
-# def addMessageSelf():
-    # global msg
-    # global boxItems
-    # global username
-    # msg=str(username) + ": "+str(msg)
-    # listboxitem = PyCEGUI.ListboxTextItem(msg)
-    # listboxitem.AutoDeleted = False
-    # chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
-    # chatbox.addItem(listboxitem)
-    # boxItems.append(listboxitem)
     
 def inv():
     global queue
@@ -381,13 +333,6 @@ class PandaCEGUI(object, DirectObject):
                 self.human=loader.loadModel('./models/Human.x')
                 self.human.reparentTo(render)
                 self.human.setScale(9, 9, 9)
-                self.human.setPos(-7, 50, 0)
-                
-                # self.sword=loader.loadModel('./models/Sword.x')
-                # self.sword.reparentTo(self.human)
-                # self.sword.setScale(.03, .05, .05)
-                # self.sword.setPos(-10.36, -.2, .57)
-                # self.sword.setHpr(-90,0,90)
                 
                 global enemyLoc1
                 global enemyLoc2
@@ -460,6 +405,11 @@ class PandaCEGUI(object, DirectObject):
                 self.accept("d", self.rightMovement, [1])
                 self.accept("d-up", self.rightMovement, [0])
                 self.accept("r", self.forwardMovement, [1])
+                
+                global newloc
+                print "starting"
+                self.human.setPos(newloc[0], newloc[1], newloc[2])
+                newloc=[]
             return
             
         
@@ -471,11 +421,6 @@ class PandaCEGUI(object, DirectObject):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
         layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
         PyCEGUI.System.getSingleton().setGUISheet(layout)
-        # self.send=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
-        # self.send.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
-        # self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
-        # self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
-        #reactor.callFromThread(start)
         global started
         started=True
         self.camGroundRay = CollisionRay()
@@ -492,42 +437,32 @@ class PandaCEGUI(object, DirectObject):
         self.floater.reparentTo(render)
         taskMgr.add(self.move,"moveTask")
         
-        
-    # def sendMessage(self, args):
-        # global msg
-        # global username
-        # msg=self.message.getText()
-        # self.message.setProperty("Text", "")
-        # reactor.callInThread(messageSender)
-        # addMessageSelf()
-        
     def move(self, task):
     
+        global movecount
         move = False
         
         if self.keymap['d']==1:
             self.human.setH(self.human.getH() - 3)
-            move = True
             
         if self.keymap['a']==1:
             self.human.setH(self.human.getH() + 3)
-            move = True
             
         if self.keymap['w']==1:
             self.human.setY(self.human, -3 * globalClock.getDt())
-            move = True
             
         if self.keymap['s']==1:
             self.human.setY(self.human, 3 * globalClock.getDt())
-            move = True
             
-        if move == True:
+        if movecount > 10:
             global loc
             loc.append(self.human.getX())
             loc.append(self.human.getY())
             loc.append(self.human.getZ())
             reactor.callFromThread(movement)
-            move = False
+            movecount = 0
+        if self.keymap['d']==1 | self.keymap['a']==1 | self.keymap['w']==1 | self.keymap['s']==1:  
+            movecount += 1
             
         camvec = self.human.getPos() - base.camera.getPos()
         camvec.setZ(0)
@@ -622,21 +557,9 @@ class MyApp(ShowBase):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
         layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
         PyCEGUI.System.getSingleton().setGUISheet(layout)
-        # self.send=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
-        # self.send.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
-        # self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
-        # self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
         reactor.callFromThread(start)
         global started
         started=True
-        
-    # def sendMessage(self, args):
-        # global msg
-        # global username
-        # msg=self.message.getText()
-        # self.message.setProperty("Text", "")
-        # reactor.callInThread(messageSender)
-        # addMessageSelf()
                 
 class EchoClient(StatefulStringProtocol,Int32StringReceiver):
     def connectionMade(self):
@@ -652,6 +575,9 @@ class EchoClient(StatefulStringProtocol,Int32StringReceiver):
         elif data=="Enemy":
             return 'enemy'
             
+        elif data=="Position":
+            return 'position'
+            
         else:
             print data
             
@@ -662,54 +588,41 @@ class EchoClient(StatefulStringProtocol,Int32StringReceiver):
         global enemyLoc1
         enemyNum += 1
         enemyLoc1.append(float(data));
-        print data
         return 'enemy1'
         
     def proto_enemy1(self, data):
         global enemyLoc2
         enemyLoc2.append(float(data));
-        print data
         return 'enemy2'
         
     def proto_enemy2(self, data):
         global enemyLoc3
-        enemyLoc3.append(float(data));
-        print data
+        enemyLoc3.append(float(data))
+        return 'init'
+        
+    def proto_position(self, data):
+        global newloc
+        newloc.append(float(data))
+        return 'positiony'
+        
+    def proto_positiony(self, data):
+        global newloc
+        newloc.append(float(data))
+        return 'positionz'
+        
+    def proto_positionz(self, data):
+        global newloc
+        newloc.append(float(data))
         return 'init'
 
     def connectionLost(self, reason):
         print "connection lost"
-        
-# class chat(irc.IRCClient, protocol.ClientFactory):
-    # def connectionMade(self):
-        # irc.IRCClient.connectionMade(self)
-        # print "connected"
-        
-    # def connectionLost(self, reason):
-        # pass
-        
-    # def signedOn(self):
-        # print "signed on"
-        
-    # def joined(self, channel):
-        # pass
-       
-    # def privmsg(self, username, channel, message):
-        # username = username.split('!', 1)[0]
-        # global msg
-        # global user
-        # msg=message
-        # user=username
-        # reactor.callInThread(messageReceived)
         
 class twistedThread(threading.Thread):
     def run(self):
         creator = protocol.ClientCreator(reactor, EchoClient)
         d = creator.connectTCP("localhost", 5000)
         d.addCallback(gotProtocol)
-        # e=protocol.ClientCreator(reactor, chat)
-        # f= e.connectTCP("irc.mibbit.net", 6667)
-        # f.addCallback(chatProtocol)
         reactor.run(False)
         
 twistedThread().start()

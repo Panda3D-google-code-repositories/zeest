@@ -49,6 +49,19 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
             if password==info:
                 print user +" logged in"
                 self.sendString("logged in")
+                query="""SELECT loc_x from users where username='chrisvj'"""
+                cur.execute(query)
+                self.sendString("Position")
+                info=cur.fetchone()
+                self.sendString(str(info[0]))
+                query="""SELECT loc_y from users where username='chrisvj'"""
+                cur.execute(query)
+                info=cur.fetchone()
+                self.sendString(str(info[0]))
+                query="""SELECT loc_z from users where username='chrisvj'"""
+                cur.execute(query)
+                info=cur.fetchone()
+                self.sendString(str(info[0]))
                 sql="""SELECT name,loc_x,loc_y,loc_z FROM enemies"""
                 cur.execute(sql)
                 info=cur.fetchall()
@@ -79,11 +92,25 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
         return 'loggedin'
         
     def proto_moved(self,data):
-        query = """update users set loc_x=100 where username='chrisvj'"""
+        query = """update users set loc_x=%s where username='chrisvj'""" % \
+                (data)
         cur.execute(query)
-        return 'loggedin'
+        con.commit()
+        return 'movedy'
 
+    def proto_movedy(self,data):
+        query = """update users set loc_y=%s where username='chrisvj'""" % \
+                (data)
+        cur.execute(query)
+        con.commit()
+        return 'movedz'
         
+    def proto_movedz(self,data):
+        query = """update users set loc_z=%s where username='chrisvj'""" % \
+                (data)
+        cur.execute(query)
+        con.commit()
+        return 'loggedin'
 
 class redir(protocol.ServerFactory):
     protocol=listen
