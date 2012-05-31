@@ -63,13 +63,24 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
                 cur.execute(query)
                 info=cur.fetchone()
                 self.sendString(str(info[0]))
-                sql="""SELECT name,loc_x,loc_y,loc_z FROM enemies"""
+                sql="""SELECT * FROM enemies"""
                 cur.execute(sql)
                 info=cur.fetchall()
-                self.sendString(str(info[0][0]))
-                self.sendString(str(info[0][1]))
-                self.sendString(str(info[0][2]))
-                self.sendString(str(info[0][3]))
+                continuea=True
+                enemycount=0
+                while continuea == True:
+                    try:
+                        self.sendString("Enemy")
+                        self.sendString(str(info[enemycount][0]))
+                        self.sendString(str(info[enemycount][1]))
+                        self.sendString(str(info[enemycount][2]))
+                        self.sendString(str(info[enemycount][3]))
+                        self.sendString(str(info[enemycount][4]))
+                        self.sendString(str(info[enemycount][5]))
+                        self.sendString(str(info[enemycount][6]))
+                        enemycount += 1
+                    except IndexError:
+                        continuea = False
                 return 'loggedin'
                 
             else:

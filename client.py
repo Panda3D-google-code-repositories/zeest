@@ -14,8 +14,7 @@ from twisted.protocols.basic import Int32StringReceiver, StatefulStringProtocol
 
 import threading
 import Queue
-
-
+import sqlite3 as sqlite
 
 queue=Queue.Queue(-1)
 prot = None
@@ -33,6 +32,9 @@ enemyNum=0
 enemyLoc1=[]
 enemyLoc2=[]
 enemyLoc3=[]
+enemyName=[]
+enemyID=[]
+enemyLevel=[]
 loc=[]
 newloc=[]
 movecount=0
@@ -353,13 +355,26 @@ class PandaCEGUI(object, DirectObject):
                 global enemyLoc2
                 global enemyLoc3
                 global enemyNum
+                global enemyName
+                global enemyID
+                
+                con=sqlite.connect('client.sqlite')
+                cur=con.cursor()
+                query="""delete from enemies"""
+                cur.execute(query)
+                    
                 numloaded = 0
                 while enemyNum > numloaded:
                 
                     self.enemy=loader.loadModel('./models/Human.x')
                     self.enemy.reparentTo(render)
                     self.enemy.setScale(9,9,9)
-                    self.enemy.setPos(enemyLoc1[0], enemyLoc2[0], enemyLoc3[0])
+                    self.enemy.setPos(enemyLoc1[numloaded], enemyLoc2[numloaded], enemyLoc3[numloaded])
+
+                    query="""insert into enemies values(%s, %s, %s, %s, %s, %s)""" % \
+                            (enemyID[numloaded], "'" + enemyName[numloaded] + "'", enemyLoc1[numloaded], enemyLoc2[numloaded], enemyLoc3[numloaded], enemyLevel[numloaded])
+                    cur.execute(query)
+                    con.commit()
                     numloaded += 1
                     
                 if enemyNum == 0:
@@ -610,7 +625,7 @@ class EchoClient(StatefulStringProtocol,Int32StringReceiver):
             reactor.callInThread(loggedin)
             
         elif data=="Enemy":
-            return 'enemy'
+            return 'enemyID'
             
         elif data=="Position":
             return 'position'
@@ -623,21 +638,37 @@ class EchoClient(StatefulStringProtocol,Int32StringReceiver):
             
         return 'init'
         
-    def proto_enemy(self, data):
-        global enemyNum
-        global enemyLoc1
-        enemyNum += 1
-        enemyLoc1.append(float(data));
-        return 'enemy1'
+    def proto_enemyID(self, data):
+        global enemyID
+        enemyID.append(data)
+        return 'enemyname'
         
-    def proto_enemy1(self, data):
+    def proto_enemyname(self, data):
+        global enemyName
+        enemyName.append(data)
+        return 'enemyx'
+        
+    def proto_enemyx(self, data):
+        global enemyLoc1
+        enemyLoc1.append(float(data));
+        return 'enemyy'
+        
+    def proto_enemyy(self, data):
         global enemyLoc2
         enemyLoc2.append(float(data));
-        return 'enemy2'
+        return 'enemyz'
         
-    def proto_enemy2(self, data):
+    def proto_enemyz(self, data):
+        global enemyNum
         global enemyLoc3
         enemyLoc3.append(float(data))
+        return 'enemyLevel'
+        
+    def proto_enemyLevel(self, data):
+        global enemyNum
+        global enemyLevel
+        enemyLevel.append(data)
+        enemyNum+=1
         return 'init'
         
     def proto_position(self, data):
