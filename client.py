@@ -44,6 +44,13 @@ def loginClicked(user, password):
     prot.sendString('Login:')
     prot.sendString(str(user))
     prot.sendString(str(password))
+    prot.sendString('done')
+    
+def register(user, password):
+    prot.sendString('Register:')
+    prot.sendString(str(user))
+    prot.sendString(str(password))
+    prot.sendString('done')
     
 def gotProtocol(proto):
     global prot
@@ -326,8 +333,12 @@ class PandaCEGUI(object, DirectObject):
         if x==0:
             #must be called twice for some reason(bug?)
             reactor.callFromThread(loginClicked, username, password)
-            reactor.callFromThread(loginClicked, username, password)
             x=1
+            
+        if x==2:
+            reactor.callFromThread(register, username, password)
+            x=''
+        
         global queue
         while not queue.empty():
             callable=queue.get()
@@ -556,6 +567,8 @@ class MyApp(ShowBase):
         self.usernameBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Username")
         self.passwordBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Password")
         self.submit.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'login')
+        self.register=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Register")
+        self.register.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'registerClicked')
         self.noUsername=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoUsername")
         self.noUsernameOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoUsername/Ok")
         self.noUsernameOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noUsernameOkClicked')
@@ -593,6 +606,44 @@ class MyApp(ShowBase):
         
     def createCharacter(self, args):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+        
+    def registerClicked(self, args):
+        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("register.layout")
+        PyCEGUI.System.getSingleton().setGUISheet(layout)
+        self.registerWindow=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register")
+        self.submit=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Submit")
+        self.usernameBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Username")
+        self.passwordBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Password")
+        self.registerClose=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Close")
+        self.noUsername=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoUsername")
+        self.noUsernameOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoUsername/Ok")
+        self.noPassword=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoPassword")
+        self.noPasswordOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoPassword/Ok")
+        self.Incorrect=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Incorrect")
+        self.IncorrectOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Incorrect/Ok")
+        self.registerClose.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'cancelRegister')
+        self.submit.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'completeRegister')
+        self.noUsernameOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noUsernameOkClicked')
+        self.noPasswordOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noPasswordOkClicked')
+
+    def completeRegister(self, args):
+        self.username=self.usernameBox.getText()
+        if self.username=="":
+            self.noUsername.setProperty("Visible", "True")
+        else:
+            self.password=self.passwordBox.getText()
+            if password=="":
+                self.noPassword.setProperty("Visible", "True")
+            else:
+                global username
+                username=self.username
+                global x
+                x=2
+                global password
+                password=self.password
+                PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+                self.setupUI()
         
     def play(self, args):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")

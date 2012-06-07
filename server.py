@@ -20,6 +20,8 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
         print data
         if data=="Login:":
             return 'user'
+        elif data=="Register:":
+            return 'registerUser'
         else:
             return 'init'
 
@@ -32,6 +34,29 @@ class listen(StatefulStringProtocol,Int32StringReceiver,protocol.Protocol):
         global password
         password=data
         return 'login'
+        
+    def proto_registerUser(self, data):
+        global user
+        user=data
+        return 'registerPass'
+        
+    def proto_registerPass(self, data):
+        global password
+        password=data
+        return 'register'
+        
+    def proto_register(self, data):
+        global user, password, con, cur
+        con=sqlite.connect('users.sqlite')
+        cur=con.cursor()
+        user= "'" + str(user) + "'"
+        password=str(password)
+        sql="""insert into users (username, password) values (%s, %s);""" % \
+                (str(user), str(password))
+        cur.execute(sql)
+        con.commit()
+        con.close()
+        return 'init'
         
     def proto_login(self, data):
         global user, password, con, cur
