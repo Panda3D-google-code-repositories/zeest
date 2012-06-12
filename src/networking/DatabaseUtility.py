@@ -29,60 +29,15 @@ class DatabaseHandler(object):
     
     def create_database(self):
         if self.connected or self.connect():
-            self.cursor.execute("CREATE TABLE users (ID INTEGER PRIMARY KEY, \
-                                                     characterIDs TEXT, \
-                                                     username TEXT, \
-                                                     password TEXT, \
-                                                     email TEXT, \
-                                                     lastLogin TEXT, \
-                                                     lastLoginIP TEXT)")
-            self.cursor.execute("CREATE TABLE characters (ID INTEGER PRIMARY KEY, \
-                                                          classID INTEGER, \
-                                                          inventoryID INTEGER, \
-                                                          motionID INTEGER, \
-                                                          abilityIDs TEXT, \
-                                                          attributesID INTEGER, \
-                                                          effectIDs TEXT, \
-                                                          level INTEGER, \
-                                                          experience INTEGER, \
-                                                          name TEXT, \
-                                                          gender TEXT, \
-                                                          creationDate TEXT)")
-            self.cursor.execute("CREATE TABLE class (ID INTEGER PRIMARY KEY, \
-                                                     name TEXT, description TEXT)")
-            self.cursor.execute("CREATE TABLE attributes (ID INTEGER PRIMARY KEY, \
-                                                          currentHealth INTEGER, \
-                                                          health INTEGER, \
-                                                          currentMagic INTEGER, \
-                                                          magic INTEGER, \
-                                                          strength INTEGER, \
-                                                          dexterity INTEGER, \
-                                                          wisdom INTEGER, \
-                                                          intelligence INTEGER)")
-            self.cursor.execute("CREATE TABLE abilities (ID INTEGER PRIMARY KEY, \
-                                                         name TEXT, description TEXT)")
-            self.cursor.execute("CREATE TABLE effects (ID INTEGER PRIMARY KEY, \
-                                                       name TEXT, \
-                                                       description TEXT, \
-                                                       duration INTEGER)")
-            self.cursor.execute("CREATE TABLE motion (ID INTEGER PRIMARY KEY, \
-                                                      acceleration_X FLOAT(4), \
-                                                      acceleration_y FLOAT(4), \
-                                                      acceleration_z FLOAT(4), \
-                                                      position_x FLOAT(4), \
-                                                      position_y FLOAT(4), \
-                                                      position_z FLOAT(4), \
-                                                      heading INTEGER, \
-                                                      facing INTEGER)")
+            self.cursor.execute("CREATE TABLE users (ID INTEGER PRIMARY KEY, characterIDs TEXT, username TEXT, password TEXT, email TEXT, lastLogin TEXT, lastLoginIP TEXT)")
+            self.cursor.execute("CREATE TABLE characters (ID INTEGER PRIMARY KEY, classID INTEGER, inventoryID INTEGER, motionID INTEGER, abilityIDs TEXT, attributesID INTEGER, effectIDs TEXT, level INTEGER, experience INTEGER, name TEXT, gender TEXT, creationDate TEXT)")
+            self.cursor.execute("CREATE TABLE class (ID INTEGER PRIMARY KEY, name TEXT, description TEXT)")
+            self.cursor.execute("CREATE TABLE attributes (ID INTEGER PRIMARY KEY, currentHealth INTEGER, health INTEGER, currentMagic INTEGER, magic INTEGER, strength INTEGER, dexterity INTEGER, wisdom INTEGER, intelligence INTEGER)")
+            self.cursor.execute("CREATE TABLE abilities (ID INTEGER PRIMARY KEY, name TEXT, description TEXT)")
+            self.cursor.execute("CREATE TABLE effects (ID INTEGER PRIMARY KEY, name TEXT, description TEXT, duration INTEGER)")
+            self.cursor.execute("CREATE TABLE motion (ID INTEGER PRIMARY KEY, acceleration_X FLOAT(4), acceleration_y FLOAT(4), acceleration_z FLOAT(4), position_x FLOAT(4), position_y FLOAT(4), position_z FLOAT(4), heading INTEGER, facing INTEGER)")
             
-            self.cursor.execute("CREATE TABLE item (ID INTEGER PRIMARY KEY, \
-                                                    name TEXT, \
-                                                    description TEXT, \
-                                                    value INTEGER, \
-                                                    effectIDs TEXT, \
-                                                    count INTEGER, \
-                                                    slot INTEGER, \
-                                                    equipped INTEGER)")
+            self.cursor.execute("CREATE TABLE item (ID INTEGER PRIMARY KEY, name TEXT, description TEXT, value INTEGER, effectIDs TEXT, count INTEGER, slot INTEGER, equipped INTEGER)")
             self.cursor.execute("CREATE TABLE inventories (ID INTEGER PRIMARY KEY, itemIDs TEXT)")
             self.close()
             
@@ -99,8 +54,7 @@ class DatabaseHandler(object):
         return entry or None    
     
     def get_user_pass_match(self, username, password):
-        info = self.get_user_info(username)
-        return not info == None and info.password == password
+        pass
     
     def register_user(self, username, password, email):
         if username and password and email and not self.is_user_registered(username):
