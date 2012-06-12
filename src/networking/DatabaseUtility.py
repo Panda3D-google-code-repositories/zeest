@@ -119,20 +119,20 @@ class DatabaseHandler(object):
         return len(password) >= 7
             
 class UserInfo(object):
-    def __init__(self, tuple):
-        self.id = tuple[0]
+    def __init__(self, tupledInfo):
+        self.id = tupledInfo[0]
         
         self.characterIDs = None
         try:
-            self.characterIDs = [int(x) for x in tuple[1].split(',')]
+            self.characterIDs = [int(x) for x in tupledInfo[1].split(',')]
         except AttributeError as _:
             pass
         
-        self.username = tuple[2]
-        self.password = tuple[3]
-        self.email = tuple[4]
-        self.lastLogin = tuple[5]
-        self.lastLoginIP = tuple[6]
+        self.username = tupledInfo[2]
+        self.password = tupledInfo[3]
+        self.email = tupledInfo[4]
+        self.lastLogin = tupledInfo[5]
+        self.lastLoginIP = tupledInfo[6]
         
 class CharacterInfo(object):  # TODO
     def __init__(self, userInfo):
@@ -147,20 +147,4 @@ if __name__ == '__main__':
         if handler.register_user('joshbyrom', '0123456', 'something@somewhere.com'):
             print handler.get_user_info('joshbyrom')
     
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
             
