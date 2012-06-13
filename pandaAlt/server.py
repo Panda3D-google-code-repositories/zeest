@@ -22,6 +22,7 @@ POSITION            = 8
 
 CLIENTS = {}
 USERS={}
+USERMODEL={}
 MOVECOUNTW={}
 MOVECOUNTS={}
 MOVECOUNTA={}
@@ -46,6 +47,7 @@ class Server(DirectObject):
         taskMgr.add(self.listenTask, "serverListenTask",-40)
         taskMgr.add(self.readTask, "serverReadTask", -39)
         taskMgr.add(self.move, "moveTask", -38)
+        taskMgr.add(self.sendPos, "sendPosTask", -37)
         
     def handleDatagram(self, data, msgID, client):
         if msgID in Handlers.keys():
@@ -72,29 +74,28 @@ class Server(DirectObject):
         return Task.cont
         
     def move(self, task):
+        for client in USERS.keys():
+            user=USERMODEL[client]
+            sql="""update users SET loc_x = %s, loc_y = %s, loc_z = %s where username = %s""" % \
+                (user.getX(), user.getY(), user.getZ(), "'" + USERS[client] + "'")
+            cur.execute(sql)
+            con.commit()
         return Task.cont
         
     def moving(self, msgID, data, client):
         key=data.getString()
         time=data.getFloat64()
         if key == 'w':
-            num=MOVECOUNTW[client]
-            num += time
-            MOVECOUNTW[client]=num
+            USERMODEL[client].setY(USERMODEL[client], -3 * time)
+            
         elif key == 's':
-            num=MOVECOUNTS[client]
-            num += time
-            MOVECOUNTS[client]=num
+            USERMODEL[client].setY(USERMODEL[client], 3 * time)
             
         elif key == 'a':
-            num=MOVECOUNTA[client]
-            num += time
-            MOVECOUNTA[client]=num
+            USERMODEL[client].setH(USERMODEL[client].getH() + 3)
             
         elif key == 'd':
-            num=MOVECOUNTD[client]
-            num += time
-            MOVECOUNTD[client]=num
+            USERMODEL[client].setH(USERMODEL[client].getH() - 3)
             
         else:
             print "INVALID KEY! " + key
@@ -130,7 +131,9 @@ class Server(DirectObject):
                 MOVECOUNTA[client]=0
                 MOVECOUNTS[client]=0
                 MOVECOUNTD[client]=0
-                self.sendPos(username, client)
+                USERMODEL[client]=loader.loadModel('./models/Human.x')
+                USERMODEL[client].reparentTo(render)
+                USERMODEL[client].setScale(7, 7, 7)
                 
             else:
                 flag = 2
@@ -185,18 +188,19 @@ class Server(DirectObject):
                
         return Task.cont
         
-    def sendPos(self, user, client):
-        sql="""SELECT loc_x, loc_y, loc_z FROM users WHERE username=%s""" % \
-                (("'" + user + "'"))
-        cur.execute(sql)
-        info=cur.fetchall()
-    
-        pkg = PyDatagram()
-        pkg.addUint16(POSITION)
-        pkg.addString(info[0][0])
-        pkg.addString(info[0][1])
-        pkg.addString(info[0][2])
-        self.cWriter.send(pkg, client)
+    def sendPos(self, task):
+        for client in USERS.keys():
+            sql="""SELECT loc_x, loc_y, loc_z FROM users WHERE username=%s""" % \
+                    (("'" + USERS[client] + "'"))
+            cur.execute(sql)
+            info=cur.fetchall()
+            pkg = PyDatagram()
+            pkg.addUint16(POSITION)
+            pkg.addFloat64(float(info[0][0]))
+            pkg.addFloat64(float(info[0][1]))
+            pkg.addFloat64(float(info[0][2]))
+            self.cWriter.send(pkg, client)
+        return Task.cont
 
 serverHandler = Server()
 
