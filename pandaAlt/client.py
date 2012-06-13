@@ -487,7 +487,18 @@ class MyApp(ShowBase):
         taskMgr.add(self.move,"moveTask")
         
     def position(self, msgID, data):
-        self.human.setPos(data.getFloat64(), data.getFloat64(), data.getFloat64())
+        oldX=float(self.human.getX())
+        newX=data.getFloat64()
+        if (newX - oldX) > 3:
+            self.human.setX(newX)
+        oldY=float(self.human.getY())
+        newY=data.getFloat64()
+        if (newY - oldY) > 3:
+            self.human.setY(newY)
+        if (newX - oldX) < -3:
+            self.human.setX(newX)
+        if (newY - oldY) < -3:
+            self.human.setY(newY)
             
     def readTask(self, task):
         while 1:
