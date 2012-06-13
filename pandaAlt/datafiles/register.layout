@@ -1,0 +1,100 @@
+<GUILayout>
+    <Window Name="Root" Type="DefaultWindow">
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Name="Root/Register" Type="Vanilla/FrameWindow">
+            <Property Name="UnifiedAreaRect" Value="{{0.005,0},{0.00188151,0},{1.00125,0},{1.00167,0}}" />
+            <Property Name="Text" Value="Register" />
+            <Property Name="Alpha" Value="0" />
+            <Property Name="TitlebarFont" Value="AnkeCalligraph" />
+            <Property Name="CloseButtonEnabled" Value="False" />
+            <Window Name="Root/Register/UsernameText" Type="Vanilla/StaticText">
+                <Property Name="UnifiedAreaRect" Value="{{0.1,0},{0.124227,0},{0.3,0},{0.169455,0}}" />
+                <Property Name="Text" Value="Username:" />
+                <Property Name="Alpha" Value="0.48" />
+                <Property Name="InheritsAlpha" Value="False" />
+            </Window>
+            <Window Name="Root/Register/PasswordText" Type="Vanilla/StaticText">
+                <Property Name="UnifiedAreaRect" Value="{{0.1,0},{0.480936,0},{0.3,0},{0.526164,0}}" />
+                <Property Name="Text" Value="Password:" />
+                <Property Name="Alpha" Value="0.48" />
+                <Property Name="InheritsAlpha" Value="False" />
+            </Window>
+            <Window Name="Root/Register/Username" Type="Vanilla/Editbox">
+                <Property Name="UnifiedAreaRect" Value="{{0.7,0},{0.122452,0},{0.9,0},{0.16768,0}}" />
+                <Property Name="InheritsAlpha" Value="False" />
+            </Window>
+            <Window Name="Root/Register/Password" Type="Vanilla/Editbox">
+                <Property Name="UnifiedAreaRect" Value="{{0.7,0},{0.473837,0},{0.9,0},{0.519065,0}}" />
+                <Property Name="MaskText" Value="True" />
+                <Property Name="InheritsAlpha" Value="False" />
+            </Window>
+            <Window Name="Root/Register/Submit" Type="Vanilla/Button">
+                <Property Name="UnifiedAreaRect" Value="{{0.6,0},{0.731164,0},{0.7,50},{0.734713,50}}" />
+                <Property Name="Text" Value="Register" />
+                <Property Name="InheritsAlpha" Value="False" />
+            </Window>
+            <Window Name="Root/Register/Close" Type="Vanilla/Button">
+                <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.731164,0},{0.4,50},{0.734713,50}}" />
+                <Property Name="Text" Value="Close" />
+                <Property Name="InheritsAlpha" Value="False" />
+            </Window>
+            <Window Name="Root/Register/Incorrect" Type="Vanilla/FrameWindow">
+                <Property Name="CloseButtonEnabled" Value="False" />
+                <Property Name="UnifiedAreaRect" Value="{{0.297573,0},{0.168594,0},{0.701533,0},{0.47623,0}}" />
+                <Property Name="Visible" Value="False" />
+                <Property Name="AlwaysOnTop" Value="True" />
+                <Property Name="TitlebarFont" Value="AnkeCalligraph" />
+                <Property Name="InheritsAlpha" Value="False" />
+                <Window Name="Root/Register/Incorrect/StaticText" Type="Vanilla/StaticText">
+                    <Property Name="UnifiedAreaRect" Value="{{-0.00662252,0},{0.0073268,0},{0.993378,0},{0.2893,0}}" />
+                    <Property Name="Text" Value="Incorrect username or password." />
+                </Window>
+                <Window Name="Root/Register/Incorrect/Ok" Type="Vanilla/Button">
+                    <Property Name="UnifiedAreaRect" Value="{{0.327815,0},{0.498222,0},{0.536424,50},{0.498222,50}}" />
+                    <Property Name="Text" Value="OK" />
+                </Window>
+            </Window>
+            <Window Name="Root/Register/NoUsername" Type="Vanilla/FrameWindow">
+                <Property Name="CloseButtonEnabled" Value="False" />
+                <Property Name="UnifiedAreaRect" Value="{{0.297573,0},{0.168594,0},{0.701533,0},{0.47623,0}}" />
+                <Property Name="Visible" Value="False" />
+                <Property Name="AlwaysOnTop" Value="True" />
+                <Property Name="TitlebarFont" Value="AnkeCalligraph" />
+                <Property Name="InheritsAlpha" Value="False" />
+                <Window Name="Root/Register/NoUsername/StaticText" Type="Vanilla/StaticText">
+                    <Property Name="UnifiedAreaRect" Value="{{-0.00662252,0},{0.0073268,0},{0.993378,0},{0.2893,0}}" />
+                    <Property Name="Text" Value="Please enter your username." />
+                </Window>
+                <Window Name="Root/Register/NoUsername/Ok" Type="Vanilla/Button">
+                    <Property Name="UnifiedAreaRect" Value="{{0.327815,0},{0.498222,0},{0.536424,50},{0.498222,50}}" />
+                    <Property Name="Text" Value="OK" />
+                </Window>
+            </Window>
+            <Window Name="Root/Register/NoPassword" Type="Vanilla/FrameWindow">
+                <Property Name="CloseButtonEnabled" Value="False" />
+                <Property Name="UnifiedAreaRect" Value="{{0.297573,0},{0.168594,0},{0.701533,0},{0.47623,0}}" />
+                <Property Name="Visible" Value="False" />
+                <Property Name="AlwaysOnTop" Value="True" />
+                <Property Name="TitlebarFont" Value="AnkeCalligraph" />
+                <Property Name="InheritsAlpha" Value="False" />
+                <Window Name="Root/Register/NoPassword/StaticText" Type="Vanilla/StaticText">
+                    <Property Name="UnifiedAreaRect" Value="{{-0.00662252,0},{0.0073268,0},{0.993378,0},{0.2893,0}}" />
+                    <Property Name="Text" Value="Please enter your password." />
+                </Window>
+                <Window Name="Root/Register/NoPassword/Ok" Type="Vanilla/Button">
+                    <Property Name="UnifiedAreaRect" Value="{{0.327815,0},{0.498222,0},{0.536424,50},{0.498222,50}}" />
+                    <Property Name="Text" Value="OK" />
+                </Window>
+            </Window>
+            <Window Name="Root/Register/RegisterWindow" Type="Vanilla/FrameWindow">
+                <Property Name="CloseButtonEnabled" Value="False" />
+                <Property Name="UnifiedAreaRect" Value="{{0.297573,0},{0.168594,0},{0.701533,0},{0.47623,0}}" />
+                <Property Name="Visible" Value="False" />
+                <Property Name="AlwaysOnTop" Value="True" />
+                <Property Name="TitlebarFont" Value="AnkeCalligraph" />
+                <Property Name="InheritsAlpha" Value="False" />
+                <Property Name="TitlebarEnabled" Value="False" />
+            </Window>
+        </Window>
+    </Window>
+</GUILayout>

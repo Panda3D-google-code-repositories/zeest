@@ -1,0 +1,20 @@
+<GUILayout>
+    <Window Name="Root" Type="DefaultWindow">
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Name="Root/Listbox" Type="Vanilla/Listbox">
+            <Property Name="UnifiedAreaRect" Value="{{0.625,0},{0.00333333,0},{0.93125,50},{0.696667,50}}" />
+        </Window>
+        <Window Name="Root/Start" Type="Vanilla/Button">
+            <Property Name="UnifiedAreaRect" Value="{{0.225,0},{0.811667,0},{0.47125,50},{0.861667,50}}" />
+            <Property Name="Text" Value="Play!" />
+        </Window>
+        <Window Name="Root/Delete" Type="Vanilla/Button">
+            <Property Name="UnifiedAreaRect" Value="{{0.64,0},{0.828333,0},{0.7225,50},{0.843333,50}}" />
+            <Property Name="Text" Value="Delete" />
+        </Window>
+        <Window Name="Root/Create" Type="Vanilla/Button">
+            <Property Name="UnifiedAreaRect" Value="{{0.83625,0},{0.821667,0},{0.92,50},{0.838333,50}}" />
+            <Property Name="Text" Value="Create" />
+        </Window>
+    </Window>
+</GUILayout>
