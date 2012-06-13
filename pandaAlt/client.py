@@ -14,6 +14,9 @@ import sqlite3 as sqlite
 loadPrcFileData('', 'show-frame-rate-meter #t')
 loadPrcFileData('', 'sync-video #f')
 
+movecount=0
+loc=[]
+
 
 class MyApp(ShowBase):
 
@@ -147,168 +150,21 @@ class MyApp(ShowBase):
         self.setupUI()
         self.enable()
         self.networkSetup()
-
-    def setupUI(self):
-        PyCEGUI.SchemeManager.getSingleton().create("VanillaSkin.scheme")
-        PyCEGUI.System.getSingleton().setDefaultFont("AnkeCalligraph")
-        PyCEGUI.System.getSingleton().setDefaultMouseCursor("Vanilla-Images", "MouseArrow")
-        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("login.layout")
-        PyCEGUI.System.getSingleton().setGUISheet(layout)
-        self.loginWindow=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login")
-        self.submit=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Submit")
-        self.usernameBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Username")
-        self.passwordBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Password")
-        self.submit.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'login')
-        self.register=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Register")
-        self.register.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'registerClicked')
-        self.noUsername=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoUsername")
-        self.noUsernameOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoUsername/Ok")
-        self.noUsernameOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noUsernameOkClicked')
-        self.noPassword=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoPassword")
-        self.noPasswordOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoPassword/Ok")
-        self.noPasswordOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noPasswordOkClicked')
-        self.Incorrect=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Incorrect")
-        self.IncorrectOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Incorrect/Ok")
-        self.IncorrectOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'incorrectOkClicked')
-
-    def login(self, args):
-        self.username=self.usernameBox.getText()
-        if self.username=="":
-            self.noUsername.setProperty("Visible", "True")
+        
+    def backwardMovement(self,value):
+        self.keymap['s']=value
+        self.keymap['w']=0
+        
+    def captureButton(self, button, name):
+        if button == 'wheel_up':
+            self.System.injectMouseWheelChange(1)
+        elif button == 'wheel_down':
+            self.System.injectMouseWheelChange(-1)
+        elif button.endswith('-up'):
+            self.System.injectMouseButtonUp(self.buttons[button])
         else:
-            self.password=self.passwordBox.getText()
-            if self.password=="":
-                self.noPassword.setProperty("Visible", "True")
-            else:
-                global username
-                username=self.username
-                password=self.password
-                
-                pkg = PyDatagram()
-                pkg.addUint16(CMSG_AUTH)
-                pkg.addString(username)
-                pkg.addString(password)
-                self.send(pkg)
-                
-    def noUsernameOkClicked(self,args):
-        self.noUsername.setProperty("Visible", "False")
+            self.System.injectMouseButtonDown(self.buttons[button])
         
-    def noPasswordOkClicked(self,args):
-        self.noPassword.setProperty("Visible", "False")
-        
-    def incorrectOkClicked(self,args):
-        self.Incorrect.setProperty("Visible", "False")
-        
-    def createCharacter(self, args):
-        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
-        
-    def registerClicked(self, args):
-        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
-        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("register.layout")
-        PyCEGUI.System.getSingleton().setGUISheet(layout)
-        self.registerWindow=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register")
-        self.submit=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Submit")
-        self.usernameBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Username")
-        self.passwordBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Password")
-        self.registerClose=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Close")
-        self.noUsername=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoUsername")
-        self.noUsernameOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoUsername/Ok")
-        self.noPassword=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoPassword")
-        self.noPasswordOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoPassword/Ok")
-        self.Incorrect=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Incorrect")
-        self.IncorrectOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Incorrect/Ok")
-        self.registerClose.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'cancelRegister')
-        self.submit.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'completeRegister')
-        self.noUsernameOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noUsernameOkClicked')
-        self.noPasswordOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noPasswordOkClicked')
-
-    def completeRegister(self, args):
-        self.username=self.usernameBox.getText()
-        if self.username=="":
-            self.noUsername.setProperty("Visible", "True")
-        else:
-            self.password=self.passwordBox.getText()
-            if password=="":
-                self.noPassword.setProperty("Visible", "True")
-            else:
-                global username
-                username=self.username
-                global x
-                x=2
-                global password
-                password=self.password
-                PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
-                self.setupUI()
-        
-    def play(self, args):
-        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
-        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
-        PyCEGUI.System.getSingleton().setGUISheet(layout)
-        self.send=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
-        self.send.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
-        self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
-        self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
-        global started
-        started=True
-        
-    def sendMessage(self, args):
-        global msg
-        global username
-        msg=self.message.getText()
-        self.message.setProperty("Text", "")
-
-    def __del__(self):
-        PyCEGUIOpenGLRenderer.OpenGLRenderer.destroySystem()
-
-    def initializeResources(self, resourcePath):
-        rp = self.System.getResourceProvider()
-        rp.setResourceGroupDirectory("schemes", resourcePath)
-        rp.setResourceGroupDirectory("imagesets", resourcePath)
-        rp.setResourceGroupDirectory("fonts", resourcePath)
-        rp.setResourceGroupDirectory("layouts", resourcePath)
-        rp.setResourceGroupDirectory("looknfeels", resourcePath)
-        rp.setResourceGroupDirectory("schemas", resourcePath)
-        PyCEGUI.Imageset.setDefaultResourceGroup("imagesets")
-        PyCEGUI.Font.setDefaultResourceGroup("fonts")
-        PyCEGUI.Scheme.setDefaultResourceGroup("schemes")
-        PyCEGUI.WidgetLookManager.setDefaultResourceGroup("looknfeels")
-        PyCEGUI.WindowManager.setDefaultResourceGroup("layouts")
-        parser = self.System.getXMLParser()
-        if parser.isPropertyPresent("SchemaDefaultResourceGroup"):
-            parser.setProperty("SchemaDefaultResourceGroup", "schemas")
-
-    def enableInputHandling(self):
-        for button, cegui_name in self.buttons.iteritems():
-            base.accept(button, self.captureButton, [button, cegui_name])
-        base.mouseWatcherNode.setModifierButtons(ModifierButtons())
-        base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
-        for key, keyTuple in self.keys.iteritems():
-            base.accept(key, self.captureKeys, [key, keyTuple])
-            base.accept(key + '-up', self.captureKeys, [key + '-up', keyTuple])
-            base.accept(key + '-repeat', self.captureKeys, [key, keyTuple])
-        if (self.hideSystemCursor):
-            self.props.setCursorHidden(True)
-            base.win.requestProperties(self.props)
-
-    def disableInputHandling(self):
-        for button, name in self.buttons.iteritems():
-            base.ignore(button)
-        for key, keyTuple in self.keys.iteritems():
-            base.ignore(key)
-            base.ignore(key + '-up')
-            base.ignore(key + '-repeat')
-        if (self.hideSystemCursor):
-            self.props.setCursorHidden(False)
-            base.win.requestProperties(self.props)
-
-    def enable(self):
-        self.enableInputHandling()
-        _renderingEnabled = True
-
-    def disable(self):
-        self.disableInputHandling()
-        _renderingEnabled = False
-   
     def captureKeys(self, key, keyTuple):
         cegui_key = keyTuple[0]
         key_ascii = keyTuple[1]
@@ -336,205 +192,208 @@ class MyApp(ShowBase):
                     self.System.injectChar(ord(key_shift))
                 else:
                     self.System.injectChar(ord(key_ascii))
-
-    def captureButton(self, button, name):
-        if button == 'wheel_up':
-            self.System.injectMouseWheelChange(1)
-        elif button == 'wheel_down':
-            self.System.injectMouseWheelChange(-1)
-        elif button.endswith('-up'):
-            self.System.injectMouseButtonUp(self.buttons[button])
+        
+    def completeRegister(self, args):
+        self.username=self.usernameBox.getText()
+        if self.username=="":
+            self.noUsername.setProperty("Visible", "True")
         else:
-            self.System.injectMouseButtonDown(self.buttons[button])
-
-    def windowEvent(self, window):
-        self.System.notifyDisplaySizeChanged(PyCEGUI.Size(window.getXSize(), window.getYSize()))
-
-    def renderCallback(self, data):
-        if self._renderingEnabled:
-            dt = globalClock.getDt()
-            self.System.injectTimePulse(dt)
-            if base.mouseWatcherNode.hasMouse():
-                x = base.win.getXSize() * (1 + base.mouseWatcherNode.getMouseX()) / 2
-                y = base.win.getYSize() * (1 - base.mouseWatcherNode.getMouseY()) / 2
-                self.System.injectMousePosition(x, y)
-            self.System.renderGUI()
-            
-    def queue(self):
-        global queue
-        while not queue.empty():
-            callable=queue.get()
-            callable()
-            queue.task_done
-            global logged
-            
-            
-            if logged==True:
-                layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("characters.layout")
-                PyCEGUI.System.getSingleton().setGUISheet(layout)
-                
-                self.create=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Create")
-                self.start=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Start")
-                self.create.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'createCharacter')
-                self.start.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'play')
-                
-                self.keymap = {"a":0, "d":0, "w":0, "s":0}
-                
-                self.human=loader.loadModel('./models/Human.x')
-                self.human.reparentTo(render)
-                self.human.setScale(7, 7, 7)
-                
-                global enemyLoc1
-                global enemyLoc2
-                global enemyLoc3
-                global enemyNum
-                global enemyName
-                global enemyID
-                
-                con=sqlite.connect('client.sqlite')
-                cur=con.cursor()
-                query="""delete from enemies"""
-                cur.execute(query)
-                    
-                numloaded = 0
-                while enemyNum > numloaded:
-                
-                    self.enemy=loader.loadModel('./models/Human.x')
-                    self.enemy.reparentTo(render)
-                    self.enemy.setScale(7,7,7)
-                    self.enemy.setPos(enemyLoc1[numloaded], enemyLoc2[numloaded], enemyLoc3[numloaded])
-
-                    query="""insert into enemies values(%s, %s, %s, %s, %s, %s)""" % \
-                            (enemyID[numloaded], "'" + enemyName[numloaded] + "'", enemyLoc1[numloaded], enemyLoc2[numloaded], enemyLoc3[numloaded], enemyLevel[numloaded])
-                    cur.execute(query)
-                    con.commit()
-                    numloaded += 1
-                    
-                if enemyNum == 0:
-                    print "No enemies"
-                
-                self.environment=loader.loadModel('./models/Environment.x')
-                self.environment.reparentTo(render)
-                self.environment.setScale(20,20,20)
-                self.environment.setPos(0,0,0)
-                
-                plight=PointLight('plight')
-                plight.setColor(VBase4(.9,.9,.9,1))
-                plnp=render.attachNewNode(plight)
-                plnp.setPos(2, -5, 1000)
-                render.setLight(plnp)
-                
-                ambientLight = AmbientLight('ambientLight')
-                ambientLight.setColor(Vec4(0.2, 0.2, 0.2, 1))
-                ambientLightNP = render.attachNewNode(ambientLight)
-                render.setLight(ambientLightNP)
-                
-                self.floater = NodePath(PandaNode("floater"))
-                self.floater.reparentTo(render)
-                
-                self.cTrav = CollisionTraverser()
-                
-                self.humanGroundRay = CollisionRay()
-                self.humanGroundRay.setOrigin(0,0,1000)
-                self.humanGroundRay.setDirection(0,0,-1)
-                
-                self.humanGroundCol=CollisionNode('humanRay')
-                self.humanGroundCol.addSolid(self.humanGroundRay)
-                self.humanGroundCol.setFromCollideMask(BitMask32.bit(0))
-                self.humanGroundCol.setIntoCollideMask(BitMask32.allOff())
-                self.humanGroundColNp=self.human.attachNewNode(self.humanGroundCol)
-                
-                self.humanGroundHandler=CollisionHandlerQueue()
-                
-                self.cTrav.addCollider(self.humanGroundColNp, self.humanGroundHandler)
-                self.cTrav.traverse(render)
-                
-                entries=[]
-                for i in range(self.humanGroundHandler.getNumEntries()):
-                    entry = self.humanGroundHandler.getEntry(i)
-                    entries.append(entry)
-                entries.sort(lambda x,y: cmp(y.getSurfacePoint(render).getZ(),
-                                             x.getSurfacePoint(render).getZ()))
-                if (len(entries)>0) and (entries[0].getIntoNode().getName()== "terrain"):
-                    self.human.setZ(entries[0].getSurfacePoint(render).getZ()+1.8)
-                logged=False
-                
-                self.accept("w", self.forwardMovement, [1])
-                self.accept("w-up", self.forwardMovement, [0])
-                self.accept("s", self.backwardMovement, [1])
-                self.accept("s-up", self.backwardMovement, [0])
-                self.accept("a", self.leftMovement, [1])
-                self.accept("a-up", self.leftMovement, [0])
-                self.accept("d", self.rightMovement, [1])
-                self.accept("d-up", self.rightMovement, [0])
-                self.accept("r", self.forwardMovement, [1])
-                
-                global newloc
-                print "starting"
-                self.human.setPos(newloc[0], newloc[1], newloc[2])
-                newloc=[]
-            return
-            
+            self.password=self.passwordBox.getText()
+            if password=="":
+                self.noPassword.setProperty("Visible", "True")
+            else:
+                global username
+                username=self.username
+                global x
+                x=2
+                global password
+                password=self.password
+                PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+                self.setupUI()
         
-    def play(self, args):
-           
-        
-        base.disableMouse()
-        camera.setPos(0, 100, 20)
+    def createCharacter(self, args):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
-        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
+        
+    def __del__(self):
+        PyCEGUIOpenGLRenderer.OpenGLRenderer.destroySystem()
+        
+    def disable(self):
+        self.disableInputHandling()
+        _renderingEnabled = False
+        
+    def disableInputHandling(self):
+        for button, name in self.buttons.iteritems():
+            base.ignore(button)
+        for key, keyTuple in self.keys.iteritems():
+            base.ignore(key)
+            base.ignore(key + '-up')
+            base.ignore(key + '-repeat')
+        if (self.hideSystemCursor):
+            self.props.setCursorHidden(False)
+            base.win.requestProperties(self.props)
+            
+    def enable(self):
+        self.enableInputHandling()
+        _renderingEnabled = True
+        
+    def enableInputHandling(self):
+        for button, cegui_name in self.buttons.iteritems():
+            base.accept(button, self.captureButton, [button, cegui_name])
+        base.mouseWatcherNode.setModifierButtons(ModifierButtons())
+        base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
+        for key, keyTuple in self.keys.iteritems():
+            base.accept(key, self.captureKeys, [key, keyTuple])
+            base.accept(key + '-up', self.captureKeys, [key + '-up', keyTuple])
+            base.accept(key + '-repeat', self.captureKeys, [key, keyTuple])
+        if (self.hideSystemCursor):
+            self.props.setCursorHidden(True)
+            base.win.requestProperties(self.props)
+            
+    def forwardMovement(self, value):
+        self.keymap['w']=value
+        
+    def handleDatagram(self, data, msgID):
+        if msgID in Handlers.keys():
+            Handlers[msgID](msgID,data)
+        else:
+            print "Unknown msgID: %d" % msgID
+            print data
+        return 
+        
+    def incorrectOkClicked(self,args):
+        self.Incorrect.setProperty("Visible", "False")
+        
+    def initializeResources(self, resourcePath):
+        rp = self.System.getResourceProvider()
+        rp.setResourceGroupDirectory("schemes", resourcePath)
+        rp.setResourceGroupDirectory("imagesets", resourcePath)
+        rp.setResourceGroupDirectory("fonts", resourcePath)
+        rp.setResourceGroupDirectory("layouts", resourcePath)
+        rp.setResourceGroupDirectory("looknfeels", resourcePath)
+        rp.setResourceGroupDirectory("schemas", resourcePath)
+        PyCEGUI.Imageset.setDefaultResourceGroup("imagesets")
+        PyCEGUI.Font.setDefaultResourceGroup("fonts")
+        PyCEGUI.Scheme.setDefaultResourceGroup("schemes")
+        PyCEGUI.WidgetLookManager.setDefaultResourceGroup("looknfeels")
+        PyCEGUI.WindowManager.setDefaultResourceGroup("layouts")
+        parser = self.System.getXMLParser()
+        if parser.isPropertyPresent("SchemaDefaultResourceGroup"):
+            parser.setProperty("SchemaDefaultResourceGroup", "schemas")
+            
+    def leftMovement(self,value):
+        self.keymap['a']=value
+        
+    def loggedIn(self):
+        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+        
+        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("characters.layout")
         PyCEGUI.System.getSingleton().setGUISheet(layout)
-        self.send=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
-        self.send.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
-        self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
-        self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
-        global started
-        started=True
-        self.camGroundRay = CollisionRay()
-        self.camGroundRay.setOrigin(0,0,1000)
-        self.camGroundRay.setDirection(0,0,-1)
-        self.camGroundCol = CollisionNode('camRay')
-        self.camGroundCol.addSolid(self.camGroundRay)
-        self.camGroundCol.setFromCollideMask(BitMask32.bit(0))
-        self.camGroundCol.setIntoCollideMask(BitMask32.allOff())
-        self.camGroundColNp = base.camera.attachNewNode(self.camGroundCol)
-        self.camGroundHandler = CollisionHandlerQueue()
-        self.cTrav.addCollider(self.camGroundColNp, self.camGroundHandler)
+        
+        self.create=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Create")
+        self.start=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Start")
+        self.create.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'createCharacter')
+        self.start.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'play')
+        
+        self.keymap = {"a":0, "d":0, "w":0, "s":0}
+        
+        self.human=loader.loadModel('./models/Human.x')
+        self.human.reparentTo(render)
+        self.human.setScale(7, 7, 7)
+        
+        self.environment=loader.loadModel('./models/Environment.x')
+        self.environment.reparentTo(render)
+        self.environment.setScale(20,20,20)
+        self.environment.setPos(0,0,0)
+        
+        plight=PointLight('plight')
+        plight.setColor(VBase4(.9,.9,.9,1))
+        plnp=render.attachNewNode(plight)
+        plnp.setPos(2, -5, 1000)
+        render.setLight(plnp)
+        
+        ambientLight = AmbientLight('ambientLight')
+        ambientLight.setColor(Vec4(0.2, 0.2, 0.2, 1))
+        ambientLightNP = render.attachNewNode(ambientLight)
+        render.setLight(ambientLightNP)
+        
         self.floater = NodePath(PandaNode("floater"))
         self.floater.reparentTo(render)
-        taskMgr.add(self.move,"moveTask")
         
-    def sendMessage(self, args):
-        global msg
-        global username
-        msg=self.message.getText()
-        self.message.setProperty("Text", "")
+        self.cTrav = CollisionTraverser()
         
+        self.humanGroundRay = CollisionRay()
+        self.humanGroundRay.setOrigin(0,0,1000)
+        self.humanGroundRay.setDirection(0,0,-1)
+        
+        self.humanGroundCol=CollisionNode('humanRay')
+        self.humanGroundCol.addSolid(self.humanGroundRay)
+        self.humanGroundCol.setFromCollideMask(BitMask32.bit(0))
+        self.humanGroundCol.setIntoCollideMask(BitMask32.allOff())
+        self.humanGroundColNp=self.human.attachNewNode(self.humanGroundCol)
+        
+        self.humanGroundHandler=CollisionHandlerQueue()
+        
+        self.cTrav.addCollider(self.humanGroundColNp, self.humanGroundHandler)
+        self.cTrav.traverse(render)
+        
+        entries=[]
+        for i in range(self.humanGroundHandler.getNumEntries()):
+            entry = self.humanGroundHandler.getEntry(i)
+            entries.append(entry)
+        entries.sort(lambda x,y: cmp(y.getSurfacePoint(render).getZ(),
+                                     x.getSurfacePoint(render).getZ()))
+        if (len(entries)>0) and (entries[0].getIntoNode().getName()== "terrain"):
+            self.human.setZ(entries[0].getSurfacePoint(render).getZ()+1.8)
+        logged=False
+        
+        self.accept("w", self.forwardMovement, [1])
+        self.accept("w-up", self.forwardMovement, [0])
+        self.accept("s", self.backwardMovement, [1])
+        self.accept("s-up", self.backwardMovement, [0])
+        self.accept("a", self.leftMovement, [1])
+        self.accept("a-up", self.leftMovement, [0])
+        self.accept("d", self.rightMovement, [1])
+        self.accept("d-up", self.rightMovement, [0])
+        self.accept("r", self.forwardMovement, [1])
+
+    def login(self, args):
+        self.username=self.usernameBox.getText()
+        if self.username=="":
+            self.noUsername.setProperty("Visible", "True")
+        else:
+            self.password=self.passwordBox.getText()
+            if self.password=="":
+                self.noPassword.setProperty("Visible", "True")
+            else:
+                global username
+                username=self.username
+                password=self.password
+                
+                pkg = PyDatagram()
+                pkg.addUint16(CMSG_AUTH)
+                pkg.addString(username)
+                pkg.addString(password)
+                self.send(pkg)
+                
     def move(self, task):
     
-        global movecount
-        move = False
+        time=globalClock.getDt()
         
         if self.keymap['d']==1:
             self.human.setH(self.human.getH() - 3)
+            self.sendMove('d', time)
             
         if self.keymap['a']==1:
             self.human.setH(self.human.getH() + 3)
+            self.sendMove('a', time)
             
         if self.keymap['w']==1:
-            self.human.setY(self.human, -3 * globalClock.getDt())
+            self.human.setY(self.human, -3 * time)
+            self.sendMove('w', time)
             
         if self.keymap['s']==1:
-            self.human.setY(self.human, 3 * globalClock.getDt())
-            
-        if movecount > 10:
-            global loc
-            loc.append(self.human.getX())
-            loc.append(self.human.getY())
-            loc.append(self.human.getZ())
-            movecount = 0
-        if self.keymap['d']==1 | self.keymap['a']==1 | self.keymap['w']==1 | self.keymap['s']==1:  
-            movecount += 1
+            self.human.setY(self.human, 3 * time)
+            self.sendMove('s', time)
             
         camvec = self.human.getPos() - base.camera.getPos()
         camvec.setZ(0)
@@ -553,18 +412,23 @@ class MyApp(ShowBase):
         
         return task.cont
         
-    def forwardMovement(self, value):
-        self.keymap['w']=value
+    def msgAuthResponse(self, msgID, data):
+        flag = data.getUint32()
+        if flag == 0:
+            print "Unknown user"
+       
+        if flag == 2:
+            print "Wrong pass, please try again..."
+
+        if flag == 1:
+            self.loggedIn()
+            
+    def msgChat(self, msgID, data):
+        print data.getString()
         
-    def backwardMovement(self,value):
-        self.keymap['s']=value
-        self.keymap['w']=0
-        
-    def leftMovement(self,value):
-        self.keymap['a']=value
-        
-    def rightMovement(self,value):
-        self.keymap['d']=value
+    def msgDisconnectAck(self, msgID, data): 
+        self.cManager.closeConnection(self.Connection)
+        sys.exit()
         
     def networkSetup(self):
         self.cManager = QueuedConnectionManager()
@@ -577,21 +441,7 @@ class MyApp(ShowBase):
 
         taskMgr.add(self.readTask, "serverReaderPollTask", -39)
         
-    def readTask(self, task):
-        while 1:
-            (datagram, data, msgID) = self.nonBlockingRead(self.cReader)
-            if msgID is MSG_NONE:
-                break
-            else:
-                self.handleDatagram(data, msgID)
-               
-        return Task.cont
-        
     def nonBlockingRead(self,qcr):
-        """
-        Return a datagram iterator and type if data is available on the
-        queued connection reader
-        """
         if self.cReader.dataAvailable():
             datagram = NetDatagram()
             if self.cReader.getData(datagram):
@@ -605,35 +455,118 @@ class MyApp(ShowBase):
             data = None
             msgID = MSG_NONE
         return (datagram, data, msgID)
+                
+    def noUsernameOkClicked(self,args):
+        self.noUsername.setProperty("Visible", "False")
+        
+    def noPasswordOkClicked(self,args):
+        self.noPassword.setProperty("Visible", "False")
+        
+    def play(self, args):
+        base.disableMouse()
+        camera.setPos(0, 100, 20)
+        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("interface.layout")
+        PyCEGUI.System.getSingleton().setGUISheet(layout)
+        self.sendChat=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Send")
+        self.sendChat.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'sendMessage')
+        self.message=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Message")
+        self.chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
+        self.camGroundRay = CollisionRay()
+        self.camGroundRay.setOrigin(0,0,1000)
+        self.camGroundRay.setDirection(0,0,-1)
+        self.camGroundCol = CollisionNode('camRay')
+        self.camGroundCol.addSolid(self.camGroundRay)
+        self.camGroundCol.setFromCollideMask(BitMask32.bit(0))
+        self.camGroundCol.setIntoCollideMask(BitMask32.allOff())
+        self.camGroundColNp = base.camera.attachNewNode(self.camGroundCol)
+        self.camGroundHandler = CollisionHandlerQueue()
+        self.cTrav.addCollider(self.camGroundColNp, self.camGroundHandler)
+        self.floater = NodePath(PandaNode("floater"))
+        self.floater.reparentTo(render)
+        taskMgr.add(self.move,"moveTask")
+        
+    def position(self, msgID, data):
+        self.human.setPos(data.getFloat64(), data.getFloat64(), data.getFloat64())
+            
+    def readTask(self, task):
+        while 1:
+            (datagram, data, msgID) = self.nonBlockingRead(self.cReader)
+            if msgID is MSG_NONE:
+                break
+            else:
+                self.handleDatagram(data, msgID)
+               
+        return Task.cont
+        
+    def registerClicked(self, args):
+        PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
+        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("register.layout")
+        PyCEGUI.System.getSingleton().setGUISheet(layout)
+        self.registerWindow=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register")
+        self.submit=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Submit")
+        self.usernameBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Username")
+        self.passwordBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Password")
+        self.registerClose=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Close")
+        self.noUsername=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoUsername")
+        self.noUsernameOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoUsername/Ok")
+        self.noPassword=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoPassword")
+        self.noPasswordOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/NoPassword/Ok")
+        self.Incorrect=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Incorrect")
+        self.IncorrectOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Register/Incorrect/Ok")
+        self.registerClose.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'cancelRegister')
+        self.submit.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'completeRegister')
+        self.noUsernameOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noUsernameOkClicked')
+        self.noPasswordOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noPasswordOkClicked')
+        
+    def renderCallback(self, data):
+        if self._renderingEnabled:
+            dt = globalClock.getDt()
+            self.System.injectTimePulse(dt)
+            if base.mouseWatcherNode.hasMouse():
+                x = base.win.getXSize() * (1 + base.mouseWatcherNode.getMouseX()) / 2
+                y = base.win.getYSize() * (1 - base.mouseWatcherNode.getMouseY()) / 2
+                self.System.injectMousePosition(x, y)
+            self.System.renderGUI()
+            
+    def rightMovement(self,value):
+        self.keymap['d']=value
         
     def send(self, pkg):
         self.cWriter.send(pkg, self.Connection)
         
-    def handleDatagram(self, data, msgID):
-        if msgID in Handlers.keys():
-            Handlers[msgID](msgID,data)
-        else:
-            print "Unknown msgID: %d" % msgID
-            print data
-        return 
+    def sendMove(self, key, time):
+        pkg = PyDatagram()
+        pkg.addUint16(MOVEMENT)
+        pkg.addString(key)
+        pkg.addFloat64(time)
+        self.send(pkg)
         
-    def msgAuthResponse(self, msgID, data):
-        flag = data.getUint32()
-        if flag == 0:
-            print "Unknown user"
-       
-        if flag == 2:
-            print "Wrong pass, please try again..."
+    def setupUI(self):
+        PyCEGUI.SchemeManager.getSingleton().create("VanillaSkin.scheme")
+        PyCEGUI.System.getSingleton().setDefaultFont("AnkeCalligraph")
+        PyCEGUI.System.getSingleton().setDefaultMouseCursor("Vanilla-Images", "MouseArrow")
+        layout=PyCEGUI.WindowManager.getSingleton().loadWindowLayout("login.layout")
+        PyCEGUI.System.getSingleton().setGUISheet(layout)
+        self.loginWindow=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login")
+        self.submit=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Submit")
+        self.usernameBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Username")
+        self.passwordBox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Password")
+        self.submit.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'login')
+        self.register=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Register")
+        self.register.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'registerClicked')
+        self.noUsername=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoUsername")
+        self.noUsernameOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoUsername/Ok")
+        self.noUsernameOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noUsernameOkClicked')
+        self.noPassword=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoPassword")
+        self.noPasswordOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/NoPassword/Ok")
+        self.noPasswordOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'noPasswordOkClicked')
+        self.Incorrect=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Incorrect")
+        self.IncorrectOk=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Login/Incorrect/Ok")
+        self.IncorrectOk.subscribeEvent(PyCEGUI.PushButton.EventClicked, self, 'incorrectOkClicked')
 
-        if flag == 1:
-            print "Authentication Successfull"
-            
-    def msgChat(self, msgID, data):
-        print data.getString()
-        
-    def msgDisconnectAck(self, msgID, data): 
-        self.cManager.closeConnection(self.Connection)
-        sys.exit()
+    def windowEvent(self, window):
+        self.System.notifyDisplaySizeChanged(PyCEGUI.Size(window.getXSize(), window.getYSize()))
 
 MSG_NONE            = 0
 CMSG_AUTH           = 1
@@ -642,6 +575,8 @@ CMSG_CHAT           = 3
 SMSG_CHAT           = 4
 CMSG_DISCONNECT_REQ = 5
 SMSG_DISCONNECT_ACK = 6
+MOVEMENT = 7
+POSITION = 8
 
 Client=MyApp()
 
@@ -649,6 +584,7 @@ Handlers = {
     SMSG_AUTH_RESPONSE  : Client.msgAuthResponse,
     SMSG_CHAT           : Client.msgChat,
     SMSG_DISCONNECT_ACK : Client.msgDisconnectAck,
+    POSITION            : Client.position,
     }
 
 Client.run()
