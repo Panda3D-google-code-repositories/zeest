@@ -360,7 +360,7 @@ class PandaCEGUI(object, DirectObject):
                 
                 self.human=loader.loadModel('./models/Human.x')
                 self.human.reparentTo(render)
-                self.human.setScale(9, 9, 9)
+                self.human.setScale(7, 7, 7)
                 
                 global enemyLoc1
                 global enemyLoc2
@@ -379,7 +379,7 @@ class PandaCEGUI(object, DirectObject):
                 
                     self.enemy=loader.loadModel('./models/Human.x')
                     self.enemy.reparentTo(render)
-                    self.enemy.setScale(9,9,9)
+                    self.enemy.setScale(7,7,7)
                     self.enemy.setPos(enemyLoc1[numloaded], enemyLoc2[numloaded], enemyLoc3[numloaded])
 
                     query="""insert into enemies values(%s, %s, %s, %s, %s, %s)""" % \
