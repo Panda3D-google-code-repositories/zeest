@@ -16,7 +16,7 @@ loadPrcFileData('', 'sync-video #f')
 
 movecount=0
 loc=[]
-
+boxItems=[]
 
 class MyApp(ShowBase):
 
@@ -210,10 +210,10 @@ class MyApp(ShowBase):
                 password=self.password
                 PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
                 self.setupUI()
-        
+              
     def createCharacter(self, args):
         PyCEGUI.WindowManager.getSingleton().destroyWindow("Root")
-        
+       
     def __del__(self):
         PyCEGUIOpenGLRenderer.OpenGLRenderer.destroySystem()
         
@@ -221,7 +221,7 @@ class MyApp(ShowBase):
         self.disableInputHandling()
         _renderingEnabled = False
         
-    def disableInputHandling(self):
+    def disableInputHandling(self, args=None):
         for button, name in self.buttons.iteritems():
             base.ignore(button)
         for key, keyTuple in self.keys.iteritems():
@@ -235,6 +235,7 @@ class MyApp(ShowBase):
     def enable(self):
         self.enableInputHandling()
         _renderingEnabled = True
+        
         
     def enableInputHandling(self):
         for button, cegui_name in self.buttons.iteritems():
@@ -355,7 +356,7 @@ class MyApp(ShowBase):
         self.accept("d", self.rightMovement, [1])
         self.accept("d-up", self.rightMovement, [0])
         self.accept("r", self.forwardMovement, [1])
-
+        
     def login(self, args):
         self.username=self.usernameBox.getText()
         if self.username=="":
@@ -370,13 +371,12 @@ class MyApp(ShowBase):
                 password=self.password
                 
                 pkg = PyDatagram()
-                pkg.addUint16(CMSG_AUTH)
+                pkg.addUint16(AUTH)
                 pkg.addString(username)
                 pkg.addString(password)
                 self.send(pkg)
                 
     def move(self, task):
-    
         time=globalClock.getDt()
         
         if self.keymap['d']==1:
@@ -409,6 +409,7 @@ class MyApp(ShowBase):
         self.floater.setPos(self.human.getPos())
         self.floater.setZ(self.human.getZ() + 10.0)
         base.camera.lookAt(self.floater)
+        base.camera.setY(self.human, 7)
         
         return task.cont
         
@@ -424,9 +425,14 @@ class MyApp(ShowBase):
             self.loggedIn()
             
     def msgChat(self, msgID, data):
-        print data.getString()
+        global boxItems
+        listboxitem = PyCEGUI.ListboxTextItem(data.getString())
+        listboxitem.AutoDeleted = False
+        chatbox=PyCEGUI.WindowManager.getSingleton().getWindow("Root/Chatbox")
+        chatbox.addItem(listboxitem)
+        boxItems.append(listboxitem)
         
-    def msgDisconnectAck(self, msgID, data): 
+    def msgDisconnect(self, msgID, data): 
         self.cManager.closeConnection(self.Connection)
         sys.exit()
         
@@ -439,7 +445,7 @@ class MyApp(ShowBase):
         self.Connection = self.cManager.openTCPClientConnection("127.0.0.1", 9099,1000)
         self.cReader.addConnection(self.Connection)
 
-        taskMgr.add(self.readTask, "serverReaderPollTask", -39)
+        taskMgr.add(self.readTask, "serverReaderPollTask")
         
     def nonBlockingRead(self,qcr):
         if self.cReader.dataAvailable():
@@ -453,9 +459,9 @@ class MyApp(ShowBase):
         else:
             datagram = None
             data = None
-            msgID = MSG_NONE
+            msgID = NONE
         return (datagram, data, msgID)
-                
+        
     def noUsernameOkClicked(self,args):
         self.noUsername.setProperty("Visible", "False")
         
@@ -491,19 +497,22 @@ class MyApp(ShowBase):
         newX=data.getFloat64()
         if (newX - oldX) > 3:
             self.human.setX(newX)
+            
         oldY=float(self.human.getY())
         newY=data.getFloat64()
         if (newY - oldY) > 3:
             self.human.setY(newY)
+            
         if (newX - oldX) < -3:
             self.human.setX(newX)
+            
         if (newY - oldY) < -3:
             self.human.setY(newY)
             
     def readTask(self, task):
         while 1:
             (datagram, data, msgID) = self.nonBlockingRead(self.cReader)
-            if msgID is MSG_NONE:
+            if msgID is NONE:
                 break
             else:
                 self.handleDatagram(data, msgID)
@@ -546,6 +555,15 @@ class MyApp(ShowBase):
     def send(self, pkg):
         self.cWriter.send(pkg, self.Connection)
         
+    def sendMessage(self, args):
+        msg = self.message.getText()
+        pkg = PyDatagram()
+        pkg.addUint16(CHAT)
+        pkg.addString(msg)
+        self.send(pkg)
+        self.message.setProperty("Text", "")
+        print "msg sent"
+        
     def sendMove(self, key, time):
         pkg = PyDatagram()
         pkg.addUint16(MOVEMENT)
@@ -579,23 +597,21 @@ class MyApp(ShowBase):
     def windowEvent(self, window):
         self.System.notifyDisplaySizeChanged(PyCEGUI.Size(window.getXSize(), window.getYSize()))
 
-MSG_NONE            = 0
-CMSG_AUTH           = 1
-SMSG_AUTH_RESPONSE  = 2
-CMSG_CHAT           = 3
-SMSG_CHAT           = 4
-CMSG_DISCONNECT_REQ = 5
-SMSG_DISCONNECT_ACK = 6
-MOVEMENT = 7
-POSITION = 8
+NONE            = 0
+AUTH            = 1
+AUTH_RESPONSE   = 2
+CHAT            = 3
+DISCONNECT      = 4
+MOVEMENT        = 5
+POSITION        = 6
 
 Client=MyApp()
 
 Handlers = {
-    SMSG_AUTH_RESPONSE  : Client.msgAuthResponse,
-    SMSG_CHAT           : Client.msgChat,
-    SMSG_DISCONNECT_ACK : Client.msgDisconnectAck,
-    POSITION            : Client.position,
+    AUTH_RESPONSE  : Client.msgAuthResponse,
+    CHAT           : Client.msgChat,
+    DISCONNECT     : Client.msgDisconnect,
+    POSITION       : Client.position,
     }
-
+    
 Client.run()
