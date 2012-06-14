@@ -10,15 +10,13 @@ import sqlite3 as sqlite
 
 PORT = 9099
 
-MSG_NONE            = 0
-CMSG_AUTH           = 1
-SMSG_AUTH_RESPONSE  = 2
-CMSG_CHAT           = 3
-SMSG_CHAT           = 4
-CMSG_DISCONNECT_REQ = 5
-SMSG_DISCONNECT_ACK = 6
-MOVEMENT            = 7
-POSITION            = 8
+NONE            = 0
+AUTH            = 1
+AUTH_RESPONSE   = 2
+CHAT            = 3
+DISCONNECT      = 4
+MOVEMENT        = 5
+POSITION        = 6
 
 CLIENTS = {}
 USERS={}
@@ -124,7 +122,7 @@ class Server(DirectObject):
                 USERS[client] = username
                 print "User: %s, logged in with pass: %s" % (username,password)
                 pkg = PyDatagram()
-                pkg.addUint16(SMSG_AUTH_RESPONSE)
+                pkg.addUint16(AUTH_RESPONSE)
                 pkg.addUint32(flag)
                 self.cWriter.send(pkg,client)
                 MOVECOUNTW[client]=0
@@ -138,23 +136,30 @@ class Server(DirectObject):
             else:
                 flag = 2
                 pkg = PyDatagram()
-                pkg.addUint16(SMSG_AUTH_RESPONSE)
+                pkg.addUint16(AUTH_RESPONSE)
                 pkg.addUint32(flag)
                 self.cWriter.send(pkg, client)
                 
         except IndexError:
             flag = 0
             pkg = PyDatagram()
-            pkg.addUint16(SMSG_AUTH_RESPONSE)
+            pkg.addUint16(AUTH_RESPONSE)
             pkg.addUint32(flag)
             self.cWriter.send(pkg, client)
 
     def msgChat(self, msgID, data, client):
-        print "ChatMsg: %s" % data.getString()
+        user = USERS[client]
+        msg = user + ": " + data.getString()
+        print "CHAT: " + msg
+        pkg = PyDatagram()
+        pkg.addUint16(CHAT)
+        pkg.addString(msg)
+        for client in USERS.keys():
+            self.cWriter.send(pkg, client)
 
     def msgDisconnectReq(self, msgID, data, client):
         pkg = PyDatagram()
-        pkg.addUint16(SMSG_DISCONNECT_ACK)
+        pkg.addUint16(DISCONNECT)
         self.cWriter.send(pkg,client)
         del CLIENTS[client]
         self.cReader.removeConnection(client)
@@ -171,7 +176,7 @@ class Server(DirectObject):
         else:
             datagram = None
             data = None
-            msgID = MSG_NONE
+            msgID = NONE
         return (datagram, data, msgID)
         
     def quit(self):
@@ -181,7 +186,7 @@ class Server(DirectObject):
     def readTask(self, task):
         while 1:
             (datagram, data, msgID) = self.nonBlockingRead(self.cReader)
-            if msgID is MSG_NONE:
+            if msgID is NONE:
                 break
             else:
                 self.handleDatagram(data, msgID,datagram.getConnection())
@@ -205,10 +210,10 @@ class Server(DirectObject):
 serverHandler = Server()
 
 Handlers = {
-    CMSG_AUTH           : serverHandler.msgAuth,
-    CMSG_CHAT           : serverHandler.msgChat,
-    CMSG_DISCONNECT_REQ : serverHandler.msgDisconnectReq,
-    MOVEMENT            : serverHandler.moving,
+    AUTH           : serverHandler.msgAuth,
+    CHAT           : serverHandler.msgChat,
+    DISCONNECT     : serverHandler.msgDisconnectReq,
+    MOVEMENT       : serverHandler.moving,
     }
 
 run() 
